@@ -8,7 +8,7 @@ use Domain\Shared\Models\BaseModel;
 
 class Product extends BaseModel
 {
-    protected $fillable = ['title', 'price'];
+    protected $guarded = [];
 
     /** Relations */
 

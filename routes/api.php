@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\API\Controllers\Subscriber\SubscriberController;
+use App\Http\API\Controllers\Payment\PaymentController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,8 +19,12 @@ use App\Http\API\Controllers\Subscriber\SubscriberController;
 
 
 /** Authenticated rotues */
-Route::middleware('auth:sanctum')
-->group(function () {
+// Route::middleware('auth:sanctum')
+// ->group(function () {
     
   
-});
+// });
+
+
+Route::post('payment', PaymentController::class)
+        ->name('payment');
