@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Product;
 
-use Domain\Product\Models\Inventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+
+use Domain\Product\Models\Inventory;
+use Domain\Shared\Models\User;
 
 class PaymentFunctionalityTest extends TestCase
 {
@@ -15,14 +17,17 @@ class PaymentFunctionalityTest extends TestCase
     {
         $inventories = Inventory::factory(3)->create();
 
-        $data = $inventories->map(fn($item) => [
+        $purchasedItems = $inventories->map(fn($item) => [
             'product_id' => $item->product->id,
             'quantity' => $item->quantity,
         ])->toArray();
 
-        $response = $this->post(route('api.payment'), [
-            'data' => $data
-        ]);
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+                    ->post(route('api.payment'), [
+                        'data' => $purchasedItems
+                    ]);
 
         $response
             ->assertSuccessful()
@@ -30,8 +35,21 @@ class PaymentFunctionalityTest extends TestCase
             ->assertJson(['ok' => true]);
 
         $inventories->each(fn($item) => $item->refresh());
-
+        # test inventory
         $this->assertEquals([0, 0, 0], $inventories->pluck('quantity')->toArray());
+        
+        # test invoice has been generated?
+        $userInvoice = $user->invoices()->first();
+        
+        $this->assertModelExists($userInvoice);
+     
+        # test invoice items has been saved correctly ?
+        $this->assertEquals(
+                $purchasedItems,  
+                $userInvoice->items()->get()->map(fn($model) => $model->only('product_id', 'quantity'))
+                    ->toArray()
+        );
+       
     }
 
     function test_products_payment_when_some_items_unavailable()
@@ -59,10 +77,10 @@ class PaymentFunctionalityTest extends TestCase
                 $data[0]['product_id'], $data[1]['product_id']
             ]]);
 
+        # test the inventory untouched in this case.
         $this->assertEquals(
             $inventories->pluck('quantity')->toArray(), 
             $inventories->map(fn($model) => $model->refresh())->pluck('quantity')->toArray()
         );
     }
-
 }

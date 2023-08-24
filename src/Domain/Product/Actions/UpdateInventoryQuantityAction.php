@@ -5,7 +5,6 @@ namespace Domain\Product\Actions;
 use Illuminate\Support\Facades\DB;
 
 use Domain\Product\Models\Product;
-use Domain\Product\DataTransferObjects\InventoryData;
 
 class UpdateInventoryQuantityAction 
 {
@@ -13,7 +12,7 @@ class UpdateInventoryQuantityAction
         Product $product,
         # This can be a signed or unsgined so the sign specifies we want to increment or decrement.
         int $quantity
-    ): InventoryData|false {
+    ):bool {
 
         DB::beginTransaction();
         try {
@@ -26,7 +25,7 @@ class UpdateInventoryQuantityAction
             $inventory->increment('quantity', $quantity);
 
             DB::commit();
-            return $product->inventory->getData();
+            return true;
 
         }catch(\Exception $e){
             DB::rollBack();

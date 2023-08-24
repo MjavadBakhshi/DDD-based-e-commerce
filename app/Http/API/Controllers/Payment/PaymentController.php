@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\API\Controllers\Shared\Controller;
 use Domain\Payment\Actions\ReserveBasketItemsAction;
 use Domain\Payment\DataTransferObjects\{BasketData, BasketItemData};
+use Domain\Payment\Actions\GenerateInvoiceAction;
 
 class PaymentController extends Controller
 {
@@ -20,13 +21,20 @@ class PaymentController extends Controller
                         
             if($result === true)
             {
-                /** generate invoice for user */
+                /** generate innvoice for user */
+                if(!GenerateInvoiceAction::execute(
+                    $basket,
+                    request()->user()
+                )) throw new \Exception('Generating invoice was not successful.');
+
                 /** Proceed payment */
+                
+
                 return response()->json([
                     'ok' => true,
                 ]);
             }else {
-                if($result == false) throw new \Exception('error');
+                if($result == false) throw new \Exception('Reserving items was not been successful.');
 
                 
 
@@ -39,7 +47,7 @@ class PaymentController extends Controller
         }
         catch (\Exception $e) {
             DB::rollBack();
-            return $this->failedResponse('Something was wrong.');    
+            return $this->failedResponse($e->getMessage());    
         }
 
     }

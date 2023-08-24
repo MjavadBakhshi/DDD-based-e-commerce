@@ -5,6 +5,7 @@ namespace Domain\Shared\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -12,6 +13,7 @@ use Spatie\LaravelData\WithData;
 
 use Domain\Shared\DataTransferObjects\UserData;
 use Database\Factories\Shared\UserFactory;
+use Domain\Payment\Models\Invoice;
 
 class User extends Authenticatable
 {
@@ -50,9 +52,16 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-
     public static function newFactory() {
         return app(UserFactory::class);
+    }
+
+
+    /** Relations */
+
+    function invoices():HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
 }
