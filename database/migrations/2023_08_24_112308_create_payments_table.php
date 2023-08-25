@@ -19,7 +19,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Invoice::class)->constrained()->cascadeOnDelete();
-            $table->string('ipg_method');
+            $table->string('ipg_type');
             # This is a technical redundancy for preventing additional join just for getting total price of an invoice.
             $table->unsignedDecimal('total_price', 10, 2);
             $table->json('ipg_info')->nullable();

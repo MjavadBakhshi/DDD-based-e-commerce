@@ -2,16 +2,21 @@
 
 namespace App\Http\API\Controllers\Payment;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use App\Http\API\Controllers\Shared\Controller;
-use Domain\Payment\Actions\ReserveBasketItemsAction;
 use Domain\Payment\DataTransferObjects\{BasketData, BasketItemData};
-use Domain\Payment\Actions\GenerateInvoiceAction;
+use Domain\Payment\Actions\{
+    GenerateInvoiceAction,
+    ReserveBasketItemsAction
+};
+use Domain\Payment\IPG\IPG;
 
 class PaymentController extends Controller
 {
-    function __invoke(BasketData $basket) {
+    /** Inject the IPG and laravel will automaticaly resolve that. */
+    function startPayment(BasketData $basket, IPG $IPG) {
 
         DB::beginTransaction();
         
@@ -22,22 +27,25 @@ class PaymentController extends Controller
             if($result === true)
             {
                 /** generate innvoice for user */
-                if(!GenerateInvoiceAction::execute(
+                $invoice = GenerateInvoiceAction::execute(
                     $basket,
                     request()->user()
-                )) throw new \Exception('Generating invoice was not successful.');
+                );
 
-                /** Proceed payment */
-                
+                if($invoice === false) throw new \Exception('Generating invoice was not successful.');
+
+                /** Proceed payment by generating redirect url*/
+                $paymetUri = $IPG->setInvoice($invoice)->startPayment();
 
                 return response()->json([
                     'ok' => true,
+                    'data' => [
+                        'payment_uri' => $paymetUri
+                    ]
                 ]);
+
             }else {
                 if($result == false) throw new \Exception('Reserving items was not been successful.');
-
-                
-
 
                 return response()->json([
                     'ok' => false,
@@ -47,8 +55,16 @@ class PaymentController extends Controller
         }
         catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return $this->failedResponse($e->getMessage());    
         }
+    }
 
+    function checkStatus(Request $request){
+        # we get payment information via API request
+        # Check payment status
+        # do some actions like changing invoice status
+        # sending notification 
+        # or rollback the reserved inventory
     }
 }

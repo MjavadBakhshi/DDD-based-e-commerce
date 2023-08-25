@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Domain\Payment\Enums\IPGType;
+use Domain\Payment\IPG\IPG;
+use Domain\Payment\IPG\Paypal;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->app->bind(IPG::class, function(){
+            return config('ipg.default')->getIPG();
+        });
     }
 }

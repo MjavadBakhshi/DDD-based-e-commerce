@@ -26,5 +26,12 @@ use App\Http\API\Controllers\Payment\PaymentController;
 // });
 
 
-Route::post('payment', PaymentController::class)
-        ->name('payment');
+Route::post('payment', [
+        PaymentController::class, 
+        'startPayment'
+])->name('payment.start');
+
+Route::post('payment/check-status', [
+        PaymentController::class, 
+        'checkStatus'
+])->name('payment.check-status');

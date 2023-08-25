@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/callback-payment', function () {
+    /** do something later */
+})->name('payment.callback-payment');

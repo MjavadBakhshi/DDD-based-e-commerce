@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Product;
 
+use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -15,6 +16,7 @@ class PaymentFunctionalityTest extends TestCase
 
     function test_purchase_payment_when_items_are_available()
     {
+        # purchase items
         $inventories = Inventory::factory(3)->create();
 
         $purchasedItems = $inventories->map(fn($item) => [
@@ -23,33 +25,35 @@ class PaymentFunctionalityTest extends TestCase
         ])->toArray();
 
         $user = User::factory()->create();
-
+        # process payment
         $response = $this->actingAs($user)
-                    ->post(route('api.payment'), [
-                        'data' => $purchasedItems
+                    ->post(route('api.payment.start'), [
+                        'data' =>  $purchasedItems,
                     ]);
-
+        # check process payment
         $response
             ->assertSuccessful()
             ->assertStatus(200)
             ->assertJson(['ok' => true]);
 
+        /** Check the payment redirect uri has been generated? */
+        $this->assertTrue(str::startsWith($response->json('data')['payment_uri'] , 'https://paypal.com/'));
+
+        # check the inventory has been reduced?
         $inventories->each(fn($item) => $item->refresh());
         # test inventory
         $this->assertEquals([0, 0, 0], $inventories->pluck('quantity')->toArray());
         
-        # test invoice has been generated?
+        # Check invoice has been generated?
         $userInvoice = $user->invoices()->first();
-        
         $this->assertModelExists($userInvoice);
      
-        # test invoice items has been saved correctly ?
+        # Check invoice items has been saved correctly ?
         $this->assertEquals(
                 $purchasedItems,  
                 $userInvoice->items()->get()->map(fn($model) => $model->only('product_id', 'quantity'))
                     ->toArray()
         );
-       
     }
 
     function test_products_payment_when_some_items_unavailable()
@@ -65,7 +69,7 @@ class PaymentFunctionalityTest extends TestCase
         $data[0]['quantity']++;
         $data[1]['quantity']++;
 
-        $response = $this->post(route('api.payment'), [
+        $response = $this->post(route('api.payment.start'), [
             'data' => $data
         ]);
 

@@ -3,18 +3,19 @@
 namespace Domain\Payment\Actions;
 
 
+use Illuminate\Support\Facades\DB;
+
 use Domain\Payment\DataTransferObjects\{BasketData, BasketItemData};
-use Domain\Payment\Models\InvoiceItem;
+use Domain\Payment\Models\{Invoice, InvoiceItem};
 use Domain\Product\Models\Product;
 use Domain\Shared\Models\User;
-use Illuminate\Support\Facades\DB;
 
 class GenerateInvoiceAction  
 {
     static function execute(
         BasketData $basket,
         User $user
-    ):bool{
+    ):Invoice|false{
         /** Run one query to retrieve price of all basket items. */
         $productsPrice = Product::select('id', 'price')
         ->whereIn(
@@ -55,7 +56,7 @@ class GenerateInvoiceAction
             $invoice->items()->saveMany($invoiceItems);
             
             DB::commit();
-            return true;
+            return $invoice;
         }catch(\Exception $e){
             DB::rollBack();
             return false;
