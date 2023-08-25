@@ -54,6 +54,10 @@ class PaymentFunctionalityTest extends TestCase
                 $userInvoice->items()->get()->map(fn($model) => $model->only('product_id', 'quantity'))
                     ->toArray()
         );
+
+        # check payment record has been created ?
+        $userpayment = $userInvoice->payments()->first();
+        $this->assertModelExists($userpayment);
     }
 
     function test_products_payment_when_some_items_unavailable()

@@ -18,5 +18,9 @@ class Invoice extends BaseModel
         return $this->hasMany(InvoiceItem::class);
     }
 
+    function payments():HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
 
 }
