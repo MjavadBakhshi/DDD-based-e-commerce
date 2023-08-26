@@ -39,12 +39,13 @@ class PaymentController extends Controller
                 if($invoice === false) throw new \Exception('Generating invoice was not successful.');
 
                 /** Proceed payment by generating redirect url*/
-                $paymetUri = $this->IPG->setInvoice($invoice)->startPayment();
+                $paymenRecord = $this->IPG->setInvoice($invoice)->savePayment();
+                if($paymenRecord === false) throw new \Exception('Payment record has not been saved.');
 
                 return response()->json([
                     'ok' => true,
                     'data' => [
-                        'payment_uri' => $paymetUri
+                        'payment_uri' =>  $this->IPG->getRedirectUri()
                     ]
                 ]);
 
@@ -63,14 +64,14 @@ class PaymentController extends Controller
         }
     }
 
-    function checkStatus(Request $request, ){
+    function processPayment(Request $request, ){
 
         # we get payment information via API request
         # Check payment status
         # do some actions like changing invoice status
         # sending notification 
         # or rollback the reserved inventory
-        $reuslt = $this->IPG->setContext($request->all())->checkStatus();
+        $this->IPG->setContext($request->all())->process();
         # we can also redirect user to determined url in the startPayment flow and the result.
         # for example when users request to start payment, they must send a redirect_uri paramter
         # and we can store that in the payment record in order to automatically redirect user to certain store.

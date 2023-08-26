@@ -2,7 +2,12 @@
 
 namespace Domain\Payment\IPG;
 
+use Domain\Payment\Actions\InsertPaymentAction;
+use Domain\Payment\Actions\SetInvoiceAsPaidAction;
+use Domain\Payment\DataTransferObjects\PaymentData;
+use Domain\Payment\Enums\IPGType;
 use Domain\Payment\Models\Invoice;
+use Domain\Payment\Models\Payment;
 
 abstract class  IPG 
 {
@@ -24,10 +29,37 @@ abstract class  IPG
         return $this; # chaining.
     }
 
-
     /** Generate a payment uri which is used to redirect user to payment page. */
-    abstract  function startPayment():string;
-    abstract function checkStatus():bool;
-    protected function onSuccess(){}
+    function savePayment():Payment|false
+    {
+        $user = $this->invoice->user;
+        # Save the payment record
+        return InsertPaymentAction::execute(
+            PaymentData::from([
+                'ipg_type' => $this->getIPGType(),
+                'total_price' => $this->invoice->total_price,
+                'invoice' => $this->invoice,
+            ]), 
+            $user
+        );
+    }
+
+    abstract function getRedirectUri():string;
+
+    abstract protected function getIPGType():IPGType;
+    
+    abstract function checkingStatus():bool;
+
+    final function process()
+    {
+        $this->checkingStatus() ? $this->onSuccess() : $this->onFailed();
+    }
+
+    protected function onSuccess(){
+        /** Get invoice id from $context */
+        $invoiceId = $this->context['invoice_id'];
+        SetInvoiceAsPaidAction::execute(new Invoice(['id' => $invoiceId]));
+    }
+
     protected function onFailed(){}
 }
