@@ -106,7 +106,7 @@ class PaymentFunctionalityTest extends TestCase
             'status' => InvoiceStatus::Pending
         ]);
 
-        $response = $this->get(route('payment.callback-payment', ['invoice_id' => $invoice->id]));
+        $response = $this->get(route('payment.verify', ['invoice_id' => $invoice->id]));
 
         $response->assertSuccessful()
             ->assertStatus(200);
@@ -146,7 +146,7 @@ class PaymentFunctionalityTest extends TestCase
 
         /** Validate payment */
         $invoice = $user->invoices()->first();
-        $response = $this->get(route('payment.callback-payment', ['invoice_id' => $invoice->id]));
+        $response = $this->get(route('payment.verify', ['invoice_id' => $invoice->id]));
 
         $response->assertSuccessful()
             ->assertStatus(200);

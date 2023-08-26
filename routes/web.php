@@ -18,5 +18,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/callback-payment', [PaymentController::class, 'processPayment'])
-->name('payment.callback-payment');
+Route::get('/payment/verify', [PaymentController::class, 'processPayment'])
+->name('payment.verify');

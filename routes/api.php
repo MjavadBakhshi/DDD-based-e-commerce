@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\API\Controllers\Payment\InvoiceReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\API\Controllers\Payment\PaymentController;
+use Domain\Payment\Enums\InvoiceStatus;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +33,8 @@ Route::post('payment', [
         'startPayment'
 ])->name('payment.start');
 
-Route::post('payment/check-status', [
-        PaymentController::class, 
-        'checkStatus'
-])->name('payment.check-status');
+Route::get('incoive/report/{status?}', InvoiceReportController::class)
+->where('status', '('.collect(InvoiceStatus::cases())->pluck('value')->implode('|').')?')
+->name('invoice.report');
+
+
