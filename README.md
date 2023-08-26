@@ -1,66 +1,118 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<p  align="center"><a  href="https://laravel.com"  target="_blank"><img  src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg"  width="400"  alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+<p  align="center">
+
+<a  href="https://github.com/laravel/framework/actions"><img  src="https://github.com/laravel/framework/workflows/tests/badge.svg"  alt="Build Status"></a>
+
+<a  href="https://packagist.org/packages/laravel/framework"><img  src="https://img.shields.io/packagist/dt/laravel/framework"  alt="Total Downloads"></a>
+
+<a  href="https://packagist.org/packages/laravel/framework"><img  src="https://img.shields.io/packagist/v/laravel/framework"  alt="Latest Stable Version"></a>
+
+<a  href="https://packagist.org/packages/laravel/framework"><img  src="https://img.shields.io/packagist/l/laravel/framework"  alt="License"></a>
+
 </p>
 
-## About Laravel
+  
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Simple E-commerce project based on DDD software architecture
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+  
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This is a simple e-commerce project that follows the principles of Domain-Driven Design (DDD) software architecture. It includes essential functionalities for managing inventory, processing payments, and generating invoice reports.
 
-## Learning Laravel
+**- Inventory management solution**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**- Payment and verification**
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**- Generate invoice reports**
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**- Sending notification**
 
-## Laravel Sponsors
+## Database design
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+  
 
-### Premium Partners
+Here is a brief illustration of the database design
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+**products**
 
-## Contributing
+- id
+- title
+- price
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**inventories**
 
-## Code of Conduct
+- product_id
+- quantity
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**invoices**
 
-## Security Vulnerabilities
+- id
+- user_id
+- created_at
+- status (paid, pending, failed),
+- total_price
+- total_items
+- address
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**invoice_items**
 
-## License
+- id
+- invoice_id
+- product_id
+- quantity
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**payments**
+
+- user_id
+- ipg_type (paypal, visacard, etc)
+- created_at
+- invoice_id
+- ipg_info (A JSON to keep additional data about thee payment such as reference code)
+
+**users**
+
+- id
+- email (username)
+- password
+
+### Relations and important notes
+
+- product and inventory has one to one relationship for the sake of scalability and separation of concerns.
+
+- invoice and payment has one to many relationship because an invoice may be canceled in first attempt and after that it becomes paid one. So i decided to keep track failed payments for an invoice as well.
+
+- invoice and invoice_items has one to many relationship.
+- 
+- user and invoice has one to many relationship
+- user and payments has one to many relationship
+
+- **Note:** we could access payments of a user by joining the users, invoices and payments so i decided to apply technical redundancy by adding user_id to payments table to prevent that low-performance joining.
+
+- **Note**: **total_price** and **total_items** fields are also a good technical redundancy as well to prevent huge aggregate and join queries to only get total price and total items of an invoice.
+
+## Installation
+
+~~~
+
+git clone https://github.com/MjavadBakhshi/DDD-based-e-commerce.git
+
+cd DDD-based-e-commerce
+
+composer install
+
+php artisan migrate
+~~~
+
+## Running application
+
+I have written 8 tests which cover validation of all features functionality. In addition these feature test are self-describing so by reviewing the test cases you can easily follow what is going on and how you can interact with the endpoints.
+
+### You can only need to run :
+~~~
+php artisan test
+~~~
+
+### Contact
+if  you are interested in this code-base feel free to contact me by
+sending email to mjavad.bakhshi@gmail.com
