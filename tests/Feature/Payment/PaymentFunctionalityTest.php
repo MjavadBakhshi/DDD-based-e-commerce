@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Product;
 
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Notifications\AnonymousNotifiable;
+
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -9,6 +12,7 @@ use Tests\TestCase;
 
 use Domain\Payment\Enums\{IPGType, InvoiceStatus};
 use Domain\Payment\Models\Invoice;
+use Domain\Payment\Notifications\InvoicePaid;
 use Domain\Product\Models\Inventory;
 use Domain\Shared\Models\User;
 
@@ -95,6 +99,9 @@ class PaymentFunctionalityTest extends TestCase
     }
 
     function test_payemnt_callback_when_payment_is_success() {
+        # Moch invoice paid notification.
+        Notification::fake();
+
         $invoice = Invoice::factory()->create([
             'status' => InvoiceStatus::Pending
         ]);
@@ -103,8 +110,19 @@ class PaymentFunctionalityTest extends TestCase
 
         $response->assertSuccessful()
             ->assertStatus(200);
-            
+        
+        /** Test invoice staus has been changed to paid? */
         $this->assertEquals(InvoiceStatus::Paid, $invoice->refresh()->status);
+
+        
+        # Test the notification has been sent to admin after invoice has been paid?
+        Notification::assertSentTo(
+            new AnonymousNotifiable(),
+            InvoicePaid::class,
+            function ($notification, $channels, $notifiable) {
+                return $notifiable->routes['mail'] == config('notification.email.recipients');
+            }
+        );
     }
 
     function test_payemnt_callback_when_payment_is_failed() {

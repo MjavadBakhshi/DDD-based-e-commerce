@@ -16,7 +16,7 @@ class SetInvoiceAsPaidAction
             
             # Puting lock on the record.
             $invoice = $invoice->lockForUpdate()->find($invoice->id);
-          
+            
             # Check status transition.
             if(!$invoice->status->canTransitTo(InvoiceStatus::Paid))
                  throw new \Exception("The invoice status can not change to {$invoice->status->name}");
@@ -25,9 +25,11 @@ class SetInvoiceAsPaidAction
             $invoice->update([
                 'status' => InvoiceStatus::Paid
             ]);
+
             DB::commit();
             
             /** Sending business notification here. */
+            SendInvoicePaidNotificationAction::execute($invoice);
             
             return true;
         }catch(\Exception $e){
