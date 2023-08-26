@@ -2,13 +2,13 @@
 
 namespace Tests\Feature\Product;
 
-use Domain\Payment\Enums\InvoiceStatus;
-use Domain\Payment\Models\Invoice;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
+use Domain\Payment\Enums\{IPGType, InvoiceStatus};
+use Domain\Payment\Models\Invoice;
 use Domain\Product\Models\Inventory;
 use Domain\Shared\Models\User;
 
@@ -94,7 +94,7 @@ class PaymentFunctionalityTest extends TestCase
         );
     }
 
-    function test_payemnt_callback() {
+    function test_payemnt_callback_when_payment_is_success() {
         $invoice = Invoice::factory()->create([
             'status' => InvoiceStatus::Pending
         ]);
@@ -105,7 +105,42 @@ class PaymentFunctionalityTest extends TestCase
             ->assertStatus(200);
             
         $this->assertEquals(InvoiceStatus::Paid, $invoice->refresh()->status);
+    }
 
+    function test_payemnt_callback_when_payment_is_failed() {
+        /** Setting the visacard IPG as default. */
+        config(['ipg.default' => IPGType::VisaCard]);
+
+        $inventories = Inventory::factory(5)->create();
+        $purchasedProducts = $inventories->take(3)->only('product_id', 'quantity')->toArray();
+
+        $user = User::factory()->create();
+        /** Start payment. */
+        $response = $this->actingAs($user)
+            ->post(route('api.payment.start'), [
+                'data' =>  $purchasedProducts
+            ]);
+
+        $response->assertSuccessful()
+            ->assertStatus(200)
+            ->assertJson(['ok' => true]);
+        $this->assertTrue(Str::startsWith($response->json('data')['payment_uri'], 'https://visa'));
+
+        /** Validate payment */
+        $invoice = $user->invoices()->first();
+        $response = $this->get(route('payment.callback-payment', ['invoice_id' => $invoice->id]));
+
+        $response->assertSuccessful()
+            ->assertStatus(200);
+
+        # Test the status of invoice that should be failed.
+        $this->assertEquals(InvoiceStatus::Failed, $invoice->refresh()->status);        
+
+        /** Test inventory is untouched and the reserved items has been returned to it? */
+        $this->assertEquals(
+            $inventories->pluck('quantity')->toArray(),
+            $inventories->map(fn($model) => $model->refresh())->pluck('quantity')->toArray()
+        );
     }
 
 }

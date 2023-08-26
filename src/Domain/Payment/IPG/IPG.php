@@ -2,8 +2,12 @@
 
 namespace Domain\Payment\IPG;
 
-use Domain\Payment\Actions\InsertPaymentAction;
-use Domain\Payment\Actions\SetInvoiceAsPaidAction;
+use Domain\Payment\Actions\{
+    InsertPaymentAction,
+    SetInvoiceAsFailedAction,
+    SetInvoiceAsPaidAction
+};
+
 use Domain\Payment\DataTransferObjects\PaymentData;
 use Domain\Payment\Enums\IPGType;
 use Domain\Payment\Models\Invoice;
@@ -61,5 +65,9 @@ abstract class  IPG
         SetInvoiceAsPaidAction::execute(new Invoice(['id' => $invoiceId]));
     }
 
-    protected function onFailed(){}
+    protected function onFailed(){
+        /** Get invoice id from $context */
+        $invoiceId = $this->context['invoice_id'];
+        SetInvoiceAsFailedAction::execute(new Invoice(['id' => $invoiceId]));
+    }
 }
