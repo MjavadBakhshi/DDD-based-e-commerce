@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Product;
 
+use Domain\Payment\Enums\InvoiceStatus;
+use Domain\Payment\Models\Invoice;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -91,4 +93,19 @@ class PaymentFunctionalityTest extends TestCase
             $inventories->map(fn($model) => $model->refresh())->pluck('quantity')->toArray()
         );
     }
+
+    function test_payemnt_callback() {
+        $invoice = Invoice::factory()->create([
+            'status' => InvoiceStatus::Pending
+        ]);
+
+        $response = $this->get(route('payment.callback-payment', ['invoice_id' => $invoice->id]));
+
+        $response->assertSuccessful()
+            ->assertStatus(200);
+            
+        $this->assertEquals(InvoiceStatus::Paid, $invoice->refresh()->status);
+
+    }
+
 }

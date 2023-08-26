@@ -18,7 +18,7 @@ abstract class  IPG
     }
 
     /** TODO: We mawy use DTO for $context to typed it for better maintanance. */
-    final public function setIContext(array $context):self
+    final public function setContext(array $context):self
     {
         $this->context = $context;
         return $this; # chaining.

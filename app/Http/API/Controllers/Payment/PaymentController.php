@@ -12,11 +12,15 @@ use Domain\Payment\Actions\{
     ReserveBasketItemsAction
 };
 use Domain\Payment\IPG\IPG;
+use Spatie\LaravelData\Attributes\Validation\IP;
 
 class PaymentController extends Controller
 {
+
+    function __construct(protected readonly IPG $IPG){}
+
     /** Inject the IPG and laravel will automaticaly resolve that. */
-    function startPayment(BasketData $basket, IPG $IPG) {
+    function startPayment(BasketData $basket) {
 
         DB::beginTransaction();
         
@@ -35,7 +39,7 @@ class PaymentController extends Controller
                 if($invoice === false) throw new \Exception('Generating invoice was not successful.');
 
                 /** Proceed payment by generating redirect url*/
-                $paymetUri = $IPG->setInvoice($invoice)->startPayment();
+                $paymetUri = $this->IPG->setInvoice($invoice)->startPayment();
 
                 return response()->json([
                     'ok' => true,
@@ -55,16 +59,21 @@ class PaymentController extends Controller
         }
         catch (\Exception $e) {
             DB::rollBack();
-            dd($e);
             return $this->failedResponse($e->getMessage());    
         }
     }
 
-    function checkStatus(Request $request){
+    function checkStatus(Request $request, ){
+
         # we get payment information via API request
         # Check payment status
         # do some actions like changing invoice status
         # sending notification 
         # or rollback the reserved inventory
+        $reuslt = $this->IPG->setContext($request->all())->checkStatus();
+        # we can also redirect user to determined url in the startPayment flow and the result.
+        # for example when users request to start payment, they must send a redirect_uri paramter
+        # and we can store that in the payment record in order to automatically redirect user to certain store.
+        # we also do this by settings for each api token.
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\API\Controllers\Payment\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,6 +18,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/callback-payment', function () {
-    /** do something later */
-})->name('payment.callback-payment');
+Route::get('/callback-payment', [PaymentController::class, 'checkStatus'])
+->name('payment.callback-payment');

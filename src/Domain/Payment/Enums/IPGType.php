@@ -5,7 +5,7 @@ namespace Domain\Payment\Enums;
 use Domain\Payment\IPG\{IPG, Paypal};
 
 enum IPGType:string {
-    case Paypal = 'paypal';
+    case Paypal = 'Paypal';
     
     /** This is a map method which gives the ipg instance according to the case. */
     function getIPG():IPG{

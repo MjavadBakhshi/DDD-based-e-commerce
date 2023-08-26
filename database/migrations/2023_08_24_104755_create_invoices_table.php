@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();          
-            $table->unsignedTinyInteger('status')->default(InvoiceStatus::Pending->value);
+            $table->char('status', 10)->default(InvoiceStatus::Pending->value);
             # Theses two are for the sake of performance optimization and are technical redundancy.
             $table->unsignedDecimal('total_price', 10, 2);
             $table->unsignedInteger('total_items');
